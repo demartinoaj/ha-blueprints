@@ -47,30 +47,14 @@ variables:
 trigger:
   - platform: state
     entity_id: !input switch_action
-    attribute: event_type
-    to: brightness_move_up
-    id: up
-  - platform: state
-    entity_id: !input switch_action
-    attribute: event_type
-    to: brightness_move_down
-    id: down
-  - platform: state
-    entity_id: !input switch_action
-    attribute: event_type
-    to: 'on'
-    id: 'on'
-  - platform: state
-    entity_id: !input switch_action
-    attribute: event_type
-    to: 'off'
-    id: 'off'
 condition: []
 action:
   - choose:
       - conditions:
-          condition: trigger
-          id: 'up'
+        condition: state
+        entity_id: event.office_switch_action
+        attribute: event_type
+        state: "brightness_move_up"
         sequence:
           - repeat:
               sequence:
@@ -91,7 +75,7 @@ action:
                 state: brightness_stop
       - conditions:
           condition: trigger
-          id: 'down'
+          id: 'brightness_move_down'
         sequence:
           - repeat:
               sequence:
@@ -111,8 +95,10 @@ action:
                 attribute: event_type
                 state: brightness_stop
       - conditions:
-          condition: trigger
-          id: 'on'
+        condition: state
+        entity_id: event.office_switch_action
+        attribute: event_type
+        state: "on"
         sequence:
           - action: light.turn_on
             metadata: {}
@@ -120,8 +106,10 @@ action:
               brightness_pct: 100
               entity_id: !input linked_light
       - conditions:
-          condition: trigger
-          id: 'off'
+        condition: state
+        entity_id: event.office_switch_action
+        attribute: event_type
+        state: "off"
         sequence:
           - action: light.turn_off
             metadata: {}
