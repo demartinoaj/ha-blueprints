@@ -51,10 +51,10 @@ condition: []
 action:
   - choose:
       - conditions:
-        condition: state
-        entity_id: event.office_switch_action
-        attribute: event_type
-        state: "brightness_move_up"
+            - condition: state
+              entity_id: !input switch_action
+              attribute: event_type
+              state: "brightness_move_up"
         sequence:
           - repeat:
               sequence:
@@ -74,8 +74,10 @@ action:
                 attribute: event_type
                 state: brightness_stop
       - conditions:
-          condition: trigger
-          id: 'brightness_move_down'
+            - condition: state
+              entity_id: !input switch_action
+              attribute: event_type
+              state: "brightness_move_down"
         sequence:
           - repeat:
               sequence:
@@ -95,10 +97,10 @@ action:
                 attribute: event_type
                 state: brightness_stop
       - conditions:
-        condition: state
-        entity_id: event.office_switch_action
-        attribute: event_type
-        state: "on"
+            - condition: state
+              entity_id: !input switch_action
+              attribute: event_type
+              state: "on"
         sequence:
           - action: light.turn_on
             metadata: {}
@@ -106,10 +108,10 @@ action:
               brightness_pct: 100
               entity_id: !input linked_light
       - conditions:
-        condition: state
-        entity_id: event.office_switch_action
-        attribute: event_type
-        state: "off"
+            - condition: state
+              entity_id: !input switch_action
+              attribute: event_type
+              state: "off"
         sequence:
           - action: light.turn_off
             metadata: {}
