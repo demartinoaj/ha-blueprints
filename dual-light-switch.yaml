@@ -35,7 +35,7 @@ blueprint:
           filter:
           - domain:
             - fan
-  source_url: 
+  source_url: https://github.com/demartinoaj/ha-blueprints/blob/main/dual-light-switch.yaml
 mode: parallel
 max: 4
 max_exceeded: silent
