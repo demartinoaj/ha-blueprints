@@ -1,0 +1,94 @@
+blueprint:
+  name: Dual Light Switch Sync
+  description: Synchronize the on/off state of a dual button wall switch with light switch and fan entities
+  domain: automation
+  input:
+    light_button:
+      name: Wall Switch Light Button Entity
+      selector:
+        entity:
+          multiple: false
+          filter:
+          - domain:
+            - light
+    fan_button:
+      name: Wall Switch Fan Button Entity
+      selector:
+        entity:
+          multiple: false
+          filter:
+          - domain:
+            - switch
+    light_entity:
+      name: Smart Light Entity
+      selector:
+        entity:
+          multiple: false
+          filter:
+          - domain:
+            - light
+    fan_entity:
+      name: Smart Fan Entity
+      selector:
+        entity:
+          multiple: false
+          filter:
+          - domain:
+            - fan
+  source_url: 
+mode: parallel
+max: 4
+max_exceeded: silent
+variables:
+  light_button: !input light_button
+  light_entity: !input light_entity
+  fan_entity: !input fan_entity
+  fan_button: !input fan_button
+triggers:
+  - entity_id:
+      - !input light_button
+      - !input light_entity
+    trigger: state
+    id: light
+  - entity_id:
+      - !input fan_entity
+      - !input fan_button
+    trigger: state
+    id: fan
+
+actions:
+- choose:
+    - conditions:
+        - condition: template
+          value_template: "{{ is_state(trigger.to_state.entity_id, 'on') }}"
+        - condition: trigger
+          id: light
+      sequence:
+        - service: light.turn_on
+          data:
+            entity_id: '{% if trigger.from_state.entity_id == light_button %} {{ light_entity }} {% else %} {{ light_button }} {% endif %}'
+
+    - conditions:
+        - condition: template
+          value_template: "{{ is_state(trigger.to_state.entity_id, 'on') }}"
+        - condition: trigger
+          id: fan
+      sequence:
+        - service: homeassistant.turn_on
+          data:
+            entity_id: '{% if trigger.from_state.entity_id == fan_button %} {{ fan_entity }} {% else %} {{ fan_button }} {% endif %}'
+
+    - conditions:
+        - condition: template
+          value_template: "{{ is_state(trigger.to_state.entity_id, 'off') }}"
+        - condition: trigger
+          id: light
+      sequence:
+        - service: light.turn_off
+          data:
+            entity_id: '{% if trigger.from_state.entity_id == light_button %} {{ light_entity }} {% else %} {{ light_button }} {% endif %}'
+
+  default:
+  - service: homeassistant.turn_off
+    target:
+        entity_id: '{% if trigger.from_state.entity_id == fan_button %} {{ fan_entity }} {% else %} {{ fan_button }} {% endif %}'
