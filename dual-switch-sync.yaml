@@ -1,5 +1,5 @@
 blueprint:
-  name: Dual Light Switch Sync
+  name: Dual Switch Sync
   description: Synchronize the on/off state of a dual button wall switch with light switch and fan entities
   domain: automation
   input:
