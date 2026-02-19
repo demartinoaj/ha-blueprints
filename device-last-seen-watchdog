@@ -1,0 +1,80 @@
+blueprint:
+  name: Device Last Seen Watchdog
+  description: Check all sensors whose name includes "last_seen". Run an action if any device is last_seen
+    longer than a specified threshold.
+  domain: automation
+  input:
+    threshold:
+      name: Last Seen Threshold
+      description: Devices last seen longer than this threshold are assumed to be offline.
+      default: 72
+      selector:
+        number:
+          unit_of_measurement: 'hours'
+          mode: box
+    time:
+      name: Test Time
+      description: Time of day to run test
+      default: '10:15:00'
+      selector:
+        time: {}
+    day:
+      name: Test Day
+      description: 'Day to test on. Either everyday (0) or on a given day (1: Monday ... 7: Sunday)'
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 7
+          mode: slider
+          step: 1
+    exclude:
+      name: Excluded Sensors
+      description: last seen sensors to exclude from detection.
+      default:
+        entity_id: []
+      selector:
+        target:
+          entity:
+          - device_class:
+            - timestamp
+    actions:
+      name: Actions
+      description: Action to be run. {{sensors}} is replaced with
+        the names of sensors who haven't been seen. {{threshold}} is replaced with the input Last Seen Threshold
+      selector:
+        action: {}
+variables:
+  day: !input 'day'
+  threshold: !input 'threshold'
+  exclude: !input 'exclude'
+  sensors: >-
+    {% set result = namespace(sensors=[]) %}
+    {% set duration_hours = threshold | int %}
+    {% set seconds_threshold = duration_hours * 3600 %}
+    
+    {% for state in states.sensor 
+
+        | selectattr('attributes.device_class', 'defined')
+        | selectattr('attributes.device_class', '==', 'timestamp') 
+    %}
+        {% if "last_seen" in state.entity_id and not state.entity_id in exclude.entity_id %}
+        {% set last_reported = as_timestamp(state.state, 0) %}
+        {% if last_reported > 0 and (as_timestamp(now()) - last_reported) > seconds_threshold %}
+            {# Strip "last seen" from the name using regex_replace #}
+            {% set clean_name = state.name | regex_replace(find='(?i)\s*last seen\s*', replace='') %}
+            {% set result.sensors = result.sensors + [clean_name] %}
+        {% endif %}
+        {% endif %}
+    {% endfor %}
+    
+    {{ result.sensors | join(', ') }}
+trigger:
+- platform: time
+  at: !input 'time'
+condition:
+- '{{ (sensors != '''') and ( (day | int == 0) or (day | int == now().isoweekday()) ) }}'
+action:
+- choose: []
+  default: !input 'actions'
+mode: single
