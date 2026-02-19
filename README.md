@@ -12,3 +12,8 @@ My switches only supported on/off and brightness_move_up/down events, so double 
 Synchronize the on/off state of a dual button wall switch with light switch and fan entities.
 
 I made this blueprint because I needed a way for my [Zooz Zen30 Double Switch](https://www.getzooz.com/zooz-zen30-double-switch/) to control both a smart light and a smart entity, both of which communicated over ZigBee. I only needed on/off for both the fan and the light, so the blueprint does support brightness or fan speed. The blueprint triggers whenever any of the four entities changes state, then it applies the on/off state of the triggering entity to its partner. Since this is actually two buttons, I set the automation to run in parallel mode, just in case the fan and the light get toggled together quickly.
+
+## Device Last Seen Watchdog
+Runs an input action whenever a timestamp sensor (that contains the phrase last seen in its name) is greater than the input threshold. Allows user to select a day to run test. Based on this [Battery Threshold blueprint](https://gist.github.com/sbyx/1f6f434f0903b872b84c4302637d0890) from sbyx.
+
+I wrote this blueprint after enabling the last seen sensor for all my Zigbee devices in Z2M (settings->advanced->last_seen = ISO_8601). I wanted to be notified if any of my temperature or door sensors ran out of battery and dropped off the ZigBee network. The time and day of the week the test is run is user configurable, as well as the action to take and the threshold at which to take it. I just have the blueprint send a notification to my phone daily if any devices have been offline for more than 48 hours.
